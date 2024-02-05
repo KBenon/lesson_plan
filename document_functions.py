@@ -6,17 +6,22 @@ template = Document("LESSON_PLAN_TEMPLATE.docx")
 def get_all_data_from_file():
     return Document("LESSON_TEMPLATE.docx")
 
-def get_table_id_of_a_day(lesson_plan_day):
-    """ This function get table_objects of those tables which contain days names
+def get_table_id_of_days(lesson_plan_days):
+    """ This function get list  which contain days names
+    and return dictionary that contain name of day as a key and table id as a value.
     return:
-        list of those table_objects which contain days names
-        Error_error -  if there is any problem to get table id from template contain days
+        dictionary that contain name of day as a key and table id as a value.
+        Error_error -  if there is any problem
     """
-    # TODO: need to update doc string
+    # TODO: Need to update doc string
     try:
-        for i in range(0, len(template.tables)):
-            if  template.tables[i].rows[0].cells[0].text == lesson_plan_day:
-                return template.tables[i]
+        list_of_days_table_id = []
+        for lesson_plan_day in lesson_plan_days:
+            for i in range(0, len(template.tables)):
+                if  template.tables[i].rows[0].cells[0].text == lesson_plan_day:
+                    list_of_days_table_id.append(template.tables[i])
+                    break
+        return list_of_days_table_id
     except Exception as e:
         return f"Error_{e}"
 
@@ -73,7 +78,7 @@ def update_intro_table(teacher_name, course, unit_title, week):
     except Exception as e:
         return f"Error_{e}"
 
-def update_table_for_lesson_plan(table_id, data):
+def update_table_for_lesson_plan(list_of_table_id, list_of_gpt_response):
     """
     parameters: 
         table_id (required): object id of table in which user want to update
@@ -82,13 +87,22 @@ def update_table_for_lesson_plan(table_id, data):
     # TODO: need to update doc string
     try:
         # Table of key concept and update it's value
-        template.tables[1].rows[1].cells[0].text = data["terminology"]
-        # Table of selected day
-        table_id.rows[1].cells[1].text = data["aims_and_objective"]
-        table_id.rows[2].cells[1].text = data["introduction"]
-        table_id.rows[3].cells[1].text = data["lesson_body"]
-        table_id.rows[4].cells[1].text = data["conclusion"]
-        
+        terminology = ""
+        for index_number, table_id in enumerate(list_of_table_id):
+            # list_of_gpt_response is a list of dictionaries
+            # Check if index_number is within the range of list_of_gpt_response
+            if index_number < len(list_of_gpt_response):
+                terminology += list_of_gpt_response[index_number]["terminology"]+"\n"
+
+                # table_id has rows and cells structure
+                table_id.rows[1].cells[1].text = list_of_gpt_response[index_number]["aims_and_objective"]
+                table_id.rows[2].cells[1].text = list_of_gpt_response[index_number]["introduction"]
+                table_id.rows[3].cells[1].text = list_of_gpt_response[index_number]["lesson_body"]
+                table_id.rows[4].cells[1].text = list_of_gpt_response[index_number]["conclusion"]
+
+        # Update key concept and terminology table
+        template.tables[1].rows[1].cells[0].text = terminology
+
         # Save the document
         return save_document()
     except Exception as e:

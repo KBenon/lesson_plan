@@ -1,14 +1,14 @@
 # Import modules
 import streamlit as st
+import glob
+import json
+import os
+import io
 from image_operation_functions import resize_image, encode_image
 from openai_functions import chat_complition_images
 from document_functions import update_intro_table, \
-    get_available_days_name, get_table_id_of_a_day, \
+    get_available_days_name, get_table_id_of_days, \
         update_table_for_lesson_plan, get_all_data_from_file
-import os
-import glob
-import io
-import json
 
 # =============== Page setup
 st.header("Automated Lesson Plan App📄")
@@ -22,8 +22,10 @@ def show_uploaded_img_in_sidebar(uploaded_images):
     for image in uploaded_images:
         st.sidebar.image(image)
 
-def handle_images_and_prompts(user_uploaded_images):
-    prompt = """I need lesson plan according to provided images. 
+def handle_images_and_prompts(user_uploaded_images, no_of_days):
+
+    # Prompt to get desired response from chatGPT
+    prompt = f"""I need {f"{no_of_days} lesson plans" if no_of_days>1 else f"{no_of_days} lesson plan"} according to provided images. 
     Identify the following items from all provided images: 
     - KEY  CONCEPTS & TERMINOLOGY 
     - Aims and Objectives
@@ -33,12 +35,12 @@ def handle_images_and_prompts(user_uploaded_images):
 
     Your response should start with json object.
     I will use json.loads() to load your response in json. Give your response properly so that json.loads() don't create any issue.
-    Do not include any explanations, only provide a  RFC8259 compliant JSON response following this format without deviation.
-    {"terminology": "key concepts and terminology seperated by new line",
+    Do not include any explanations, only provide {no_of_days} RFC8259 compliant JSON response following this format without deviation.
+    [{{"terminology": "key concepts and terminology seperated by new line",
     "aims_and_objective": "Aims and objectives seperated by new line",
     "introduction": "opening routines, warmer, topic lead-in etc seperated by new line",
     "lesson_body": "stages, activities, focus etc seperated by new line",
-    "conclusion": "closing routines & wrap up, e.g. homework setting, review, summary etc seperated by new line"}
+    "conclusion": "closing routines & wrap up, e.g. homework setting, review, summary etc seperated by new line"}}]
 
     Make sure that values must be in string.
     Don't use collections in values. 
@@ -54,7 +56,7 @@ def handle_images_and_prompts(user_uploaded_images):
             resized_image = resized_image.convert('RGB')
         base64_image = encode_image(resized_image)
         content.append({"type": "image_url", "image_url": f"data:image/jpeg;base64,{base64_image}"})
-
+    # print(content)
     return chat_complition_images(content)
 
 def get_current_path_of_file(file_name):
@@ -125,7 +127,7 @@ def main():
     with col2:
         course_name = st.text_input("Course: ", value="AP COMPUTER SCIENCE")
         week = st.text_input("Week: ", value="15")
-    day_for_lesson_plan = st.selectbox("Select a day for lesson planning", get_available_days_name())
+    days_for_lesson_plan = st.multiselect("Select a day for lesson planning", get_available_days_name())
 
     # ---------- Get images from user for lesson planning
     st.info("Upload image and then press Process button", icon="ℹ")
@@ -145,7 +147,8 @@ def main():
     if process_button:
         if teacher_name and unit_title and course_name and week:
             updated_intro_table = update_intro_table(teacher_name, course_name, unit_title, week)
-            table_id_for_lesson_plan = get_table_id_of_a_day(day_for_lesson_plan)
+            # list of table_id_of_lesson_plan_days
+            table_id_for_lesson_plan = get_table_id_of_days(days_for_lesson_plan)
 
             if updated_intro_table == True:
                 st.success("Introduction Updated Successfully")
@@ -154,20 +157,20 @@ def main():
 
             if user_uploaded_images:
                 with st.spinner('Creating your document...'):
-                    gpt_response = handle_images_and_prompts(user_uploaded_images)
+                    gpt_response = handle_images_and_prompts(user_uploaded_images, len(days_for_lesson_plan))
                     print(gpt_response)
-                    print("--->", type(gpt_response))
+                    print("1--->", type(gpt_response))
 
                     gpt_response = gpt_response.replace("`", "").replace("json", "")
                     print(gpt_response)
-                    print("--->", type(gpt_response))
+                    print("2--->", type(gpt_response))
+                    
+                    # for a_lesson_plan in gpt_response
+                    gpt_response_list = json.loads(gpt_response)
+                    print(gpt_response_list)
+                    print("3--->", type(gpt_response_list))
 
-                    gpt_response_dict = json.loads(gpt_response)
-                    print(gpt_response_dict)
-                    print("--->", type(gpt_response_dict))
-
-                    # TODO: Replace "data" with gpt response
-                    file_ready = update_table_for_lesson_plan(table_id_for_lesson_plan, gpt_response_dict)
+                    file_ready = update_table_for_lesson_plan(table_id_for_lesson_plan, gpt_response_list)
                     
                     # Download button
                     if file_ready == True:
