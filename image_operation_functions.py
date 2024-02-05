@@ -20,8 +20,8 @@ def encode_image(image):
     base64_image = base64.b64encode(image_data).decode('utf-8')
     return base64_image
 
-def resize_image(image, width=768, height=1024):
-    """ This function get image and resize it to 500x500(default)
+def resize_image(image, max_width=768, max_height=1024):
+    """ This function get image and resize it to 768x1024(default)
     parameters:
         - image (required)
         - width (optional)
@@ -32,13 +32,16 @@ def resize_image(image, width=768, height=1024):
     """
     try:
         pil_image = Image.open(image)
+        # Get size of orignal image
+        image_width, image_height = pil_image.size
         
-        original_image_width, original_image_height = pil_image.size
-        print(original_image_width, original_image_height)
-        
-        # TODO: conditions to resize image to 1000px
+        # Check and limit size of image
+        if image_width > max_width:
+            image_width = max_width
+        if image_height > max_height:
+            image_height = max_height
 
-        pil_image_resized = pil_image.resize((width, height))
+        pil_image_resized = pil_image.resize((image_width, image_height))
         print(pil_image_resized.size)
         return pil_image_resized
     except Exception as e:

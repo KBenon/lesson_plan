@@ -5,8 +5,7 @@ from openai import OpenAI
 from image_operation_functions import encode_image, resize_image
 
 # Define api keys
-openai.api_key = st.secrets["OPENAI_API_KEY"]
-client = OpenAI()
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 # =============== User prompt
 def user_prompt(placeholder):
@@ -25,7 +24,7 @@ def chat_complition_images(content):
                 "content": content,
             }
         ],
-        max_tokens=500
+        max_tokens=1000
     )
     return response.choices[0].message.content
 

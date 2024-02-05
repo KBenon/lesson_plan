@@ -3,8 +3,25 @@ from docx import Document
 # Load template document
 template = Document("LESSON_PLAN_TEMPLATE.docx")
 
-def get_table_id_from_template_contain_days():
+def get_all_data_from_file():
+    return Document("LESSON_TEMPLATE.docx")
+
+def get_table_id_of_a_day(lesson_plan_day):
     """ This function get table_objects of those tables which contain days names
+    return:
+        list of those table_objects which contain days names
+        Error_error -  if there is any problem to get table id from template contain days
+    """
+    # TODO: need to update doc string
+    try:
+        for i in range(0, len(template.tables)):
+            if  template.tables[i].rows[0].cells[0].text == lesson_plan_day:
+                return template.tables[i]
+    except Exception as e:
+        return f"Error_{e}"
+
+def get_table_id_from_template_contain_days():
+    """ This function give table_objects of those tables which contain days names
     return:
         list of those table_objects which contain days names
         Error_error -  if there is any problem to get table id from template contain days
@@ -56,6 +73,27 @@ def update_intro_table(teacher_name, course, unit_title, week):
     except Exception as e:
         return f"Error_{e}"
 
+def update_table_for_lesson_plan(table_id, data):
+    """
+    parameters: 
+        table_id (required): object id of table in which user want to update
+        data (required): data should be in json format
+    """
+    # TODO: need to update doc string
+    try:
+        # Table of key concept and update it's value
+        template.tables[1].rows[1].cells[0].text = data["terminology"]
+        # Table of selected day
+        table_id.rows[1].cells[1].text = data["aims_and_objective"]
+        table_id.rows[2].cells[1].text = data["introduction"]
+        table_id.rows[3].cells[1].text = data["lesson_body"]
+        table_id.rows[4].cells[1].text = data["conclusion"]
+        
+        # Save the document
+        return save_document()
+    except Exception as e:
+        return f"Error_{e}"
+
 def save_document(name_of_document="LESSON_TEMPLATE"):
     """This function will save document
     parameters (optional):
@@ -69,6 +107,3 @@ def save_document(name_of_document="LESSON_TEMPLATE"):
         return True
     except Exception as e:
         return f"Error_{e}"
-
-
-print(get_available_days_name())
