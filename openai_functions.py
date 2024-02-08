@@ -1,20 +1,21 @@
 # Import modules
 import streamlit as st
-import openai
 from openai import OpenAI
 from image_operation_functions import encode_image, resize_image
 
 # Define api keys
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-# =============== User prompt
-def user_prompt(placeholder):
-    user_prompt = st.text_input(label="", placeholder=placeholder, label_visibility="collapsed")
-    if user_prompt:
-        return user_prompt
-    
-def chat_complition_images(content):
-    """This function will extract information from images and respond to your prompt
+def chat_complition_images(content, total_plans):
+    """
+    This function uses the OpenAI API to generate text based on the input text.
+
+    Parameters:
+        content: The input text and images.
+        total_plans (int): The number of plans to generate.
+
+    Returns:
+        str: The generated text.
     """
     response = client.chat.completions.create(
         model="gpt-4-vision-preview",
@@ -24,7 +25,7 @@ def chat_complition_images(content):
                 "content": content,
             }
         ],
-        max_tokens=1000
+        max_tokens=600*total_plans
     )
     return response.choices[0].message.content
 

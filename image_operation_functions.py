@@ -1,12 +1,19 @@
+# Import modules
 import base64
 from PIL import Image
 import io
 
-# def encode_image(image_path):
-#   with open(image_path, "rb") as image_file:
-#     return base64.b64encode(image_file.read()).decode('utf-8')
-
 def encode_image(image):
+    """
+    Encodes an image into a base64 string.
+
+    Parameters:
+    image : Union[str, Image.Image]
+        The image to be encoded. Can be a file path or a PIL Image object.
+
+    Returns:
+        The base64 encoded image.
+    """
     if isinstance(image, str):  # If image is a file path
         with open(image, "rb") as image_file:
             image_data = image_file.read()
@@ -21,13 +28,16 @@ def encode_image(image):
     return base64_image
 
 def resize_image(image, max_width=768, max_height=1024):
-    """ This function get image and resize it to 768x1024(default)
-    parameters:
-        - image (required)
-        - width (optional)
-        - height (optional)
-    return:
-        resized image
+    """ 
+    This function get image and resize it to 768x1024(default)
+    
+    Parameters:
+        image (required): The image to be resized. Can be a file path or a PIL Image object.
+        max_width (optional): The maximum width of the resized image. Defaults to 768.
+        max_height (optional): The maximum height of the resized image. Defaults to 1024.
+    
+    Return:
+        resized image: The resized image.
         Error_error -  if there is any problem in resizing
     """
     try:
