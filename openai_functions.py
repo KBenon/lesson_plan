@@ -25,7 +25,7 @@ def chat_complition_images(content, total_plans):
                 "content": content,
             }
         ],
-        max_tokens=600*total_plans
+        max_tokens=700*total_plans
     )
     return response.choices[0].message.content
 

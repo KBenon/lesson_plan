@@ -102,13 +102,20 @@ def update_intro_table(teacher_name, course, unit_title, week):
     """
     try:
         # First table about Introduction
-        for index_num, template in enumerate(document_templates):
-            intro_table = template.tables[0]
-            intro_table.rows[0].cells[1].text = teacher_name
-            intro_table.rows[0].cells[3].text = course
-            intro_table.rows[1].cells[1].text = unit_title
-            intro_table.rows[1].cells[3].text = week
-            save_document(template, document_templates_names_for_saving[index_num])
+        # for index_num, template in enumerate(document_templates):
+        #     intro_table = template.tables[0]
+        #     intro_table.rows[0].cells[1].text = teacher_name
+        #     intro_table.rows[0].cells[3].text = course
+        #     intro_table.rows[1].cells[1].text = unit_title
+        #     intro_table.rows[1].cells[3].text = week
+        #     save_document(template, document_templates_names_for_saving[index_num])
+        
+        intro_table = document_templates[0].tables[0]
+        intro_table.rows[0].cells[1].text = teacher_name
+        intro_table.rows[0].cells[3].text = course
+        intro_table.rows[1].cells[1].text = unit_title
+        intro_table.rows[1].cells[3].text = week
+        save_document(document_templates[0], document_templates_names_for_saving[0])
         return True
     except Exception as e:
         return f"Error_{e}"
@@ -178,6 +185,27 @@ def update_table_for_assessment_and_marking_guide(list_of_table_id, list_of_gpt_
         elif file_description == "marking_guide":
             return save_document(document_templates[2], document_templates_names_for_saving[2])
         
+    except Exception as e:
+        return f"Error_{e}"
+
+def update_assessment_and_marking_guide(document_template, list_of_gpt_response, file_description):
+    try:
+        formatted_response = ""
+        for dictionary in list_of_gpt_response:
+            if dictionary[file_description].endswith("\n"):
+                formatted_response += dictionary[file_description]
+            else:
+                formatted_response += dictionary[file_description] + "\n"
+        # formatted_response = formatted_response.replace("\n", "\n\n")
+        formatted_response = formatted_response.strip().split("\n")
+        for i, data in enumerate(formatted_response, start=1):
+            document_template.add_paragraph(f"{i}. {data}")
+
+        # Save the document
+        if file_description == "assessment":
+            return save_document(document_templates[1], document_templates_names_for_saving[1])
+        elif file_description == "marking_guide":
+            return save_document(document_templates[2], document_templates_names_for_saving[2])
     except Exception as e:
         return f"Error_{e}"
 

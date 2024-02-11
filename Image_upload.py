@@ -11,7 +11,7 @@ from document_functions import update_intro_table, \
     get_available_days_name, get_table_id_of_days, \
         update_table_for_lesson_plan, get_all_data_from_file, \
             document_templates, document_templates_names_for_saving, \
-                update_table_for_assessment_and_marking_guide
+                update_assessment_and_marking_guide
 
 # =============== Page setup
 st.header("Automated Lesson Plan App📄")
@@ -64,9 +64,11 @@ def handle_images_and_prompts(user_uploaded_images, no_of_days, no_of_questions_
     "marking_guide": "marking guide of assessment questions seperated by new line"}}]
 
     Make sure that values must be in string.
-    Don't use collections in values. 
     Don't change any key.
+    Don't forget any instruction mentioned above.
     """
+    # Don't use collections in values. 
+
     content = [{"type": "text", "text": prompt}]
 
     for image in user_uploaded_images:
@@ -149,9 +151,7 @@ def main():
     # =============== User interaction section
     # ---------- Get information to update intro table
     col1, col2 = st.columns(2)
-    """
-    Define a column layout with two columns.
-    """
+    # Define a column layout with two columns.
     with col1:
         teacher_name = st.text_input("Teacher: ", value="BEN")
         unit_title = st.text_input("Unit and Title: ", value="ONE DIMENSIONAL ARRAYS")
@@ -172,24 +172,18 @@ def main():
     # =============== Checks section
     # Display uploaded images in sidebar if any
     if user_uploaded_images is not None:
-        """
-        Display uploaded images in the sidebar.
-        """
+        # Display uploaded images in the sidebar.
         show_uploaded_img_in_sidebar(user_uploaded_images)
 
     # if user press process button then check for uploaded images
     if process_button:
-        """
-        Check if all the required fields are present.
-        """
+        # Check if all the required fields are present.
         if teacher_name and unit_title and course_name and week and \
             user_selected_days and number_of_questions_for_assessment:
 
             updated_intro_table = update_intro_table(teacher_name, course_name, unit_title, week)
             # list of table_id_of_lesson_plan_days
             table_id_for_lesson_plan = get_table_id_of_days(user_selected_days, document_templates[0])
-            table_id_for_assessment = get_table_id_of_days(user_selected_days, document_templates[1])
-            table_id_for_marking_guide = get_table_id_of_days(user_selected_days, document_templates[2])
 
             if updated_intro_table == True:
                 st.success("Introduction Updated Successfully")
@@ -220,10 +214,10 @@ def main():
                 with st.spinner('Creating Lesson Plans...'):
                     file_ready = update_table_for_lesson_plan(table_id_for_lesson_plan, gpt_response_list)
                 with st.spinner('Creating Assessments...'):
-                    assessment_ready = update_table_for_assessment_and_marking_guide(table_id_for_assessment, 
+                    assessment_ready = update_assessment_and_marking_guide(document_templates[1], 
                                                                                         gpt_response_list, "assessment")
                 with st.spinner('Creating Marking Guides...'):
-                    marking_guide_ready = update_table_for_assessment_and_marking_guide(table_id_for_marking_guide,
+                    marking_guide_ready = update_assessment_and_marking_guide(document_templates[2],
                                                                                             gpt_response_list, "marking_guide")
                 # Download buttons
                 if file_ready == assessment_ready == marking_guide_ready == True:
