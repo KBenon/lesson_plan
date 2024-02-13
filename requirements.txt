@@ -18,11 +18,11 @@ importlib-metadata==7.0.1
 jinja2==3.1.3
 jsonschema==4.21.1
 jsonschema-specifications
-libffi==3.4.4
-lxml==5.1.0
-markdown-it-py==3.0.0
-markupsafe==2.1.4
-mdurl==0.1.2
+libffi
+lxml
+markdown-it-py
+markupsafe
+mdurl
 numpy==1.26.3
 openai==1.9.0
 openssl==3.0.12
