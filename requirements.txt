@@ -62,4 +62,3 @@ vc
 watchdog==3.0.0
 wheel==0.41.2
 zipp==3.17.0
-zlib
