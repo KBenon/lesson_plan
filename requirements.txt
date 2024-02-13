@@ -59,7 +59,6 @@ tzlocal==5.2
 urllib3==2.1.0
 validators==0.22.0
 vc
-vs2015_runtime
 watchdog==3.0.0
 wheel==0.41.2
 xz==5.4.5
