@@ -1,11 +1,12 @@
 # Import modules
 from docx import Document
+import os
 
 # Length of document_templates & document_templates_names_for_saving should be same
 # Load template of all documents
-document_templates = [Document("sample_templates\LESSON_PLAN_TEMPLATE.docx"), 
-                      Document("sample_templates\ASSESSMENT_TEMPLATE.docx"), 
-                      Document("sample_templates\MARKING_GUIDE_TEMPLATE.docx")]
+document_templates = [Document(f"{os.path.abspath('sample_templates/LESSON_PLAN_TEMPLATE.docx')}"), 
+                      Document(f"{os.path.abspath('sample_templates/ASSESSMENT_TEMPLATE.docx')}"), 
+                      Document(f"{os.path.abspath('sample_templates/MARKING_GUIDE_TEMPLATE.docx')}")]
 # File names for saving respective template
 document_templates_names_for_saving = ["lesson_plan", 
                                        "assessment", 
