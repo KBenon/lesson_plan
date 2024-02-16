@@ -181,9 +181,9 @@ def main():
         if teacher_name and unit_title and course_name and week and \
             user_selected_days and number_of_questions_for_assessment:
 
-            updated_intro_table = update_intro_table(teacher_name, course_name, unit_title, week)
+            updated_intro_table, selected_doc_template = update_intro_table(teacher_name, course_name, unit_title, week)
             # list of table_id_of_lesson_plan_days
-            table_id_for_lesson_plan = get_table_id_of_days(user_selected_days, document_templates[0])
+            table_id_for_lesson_plan = get_table_id_of_days(user_selected_days, selected_doc_template)
 
             if updated_intro_table == True:
                 st.success("Introduction Updated Successfully")
@@ -195,35 +195,36 @@ def main():
                     gpt_response = handle_images_and_prompts(user_uploaded_images, len(user_selected_days), 
                                                              number_of_questions_for_assessment)
                     # for debugging - view responses in terminal
-                    # print(gpt_response)
                     # print("1--->", type(gpt_response))
+                    # print(gpt_response)
 
                     gpt_response = gpt_response.replace("`", "").replace("json", "")
 
                     # for debugging - view responses in terminal
-                    # print(gpt_response)
-                    # print("2--->", type(gpt_response))
+                    print(f"{'GPT Response Setted':~^20}\n", type(gpt_response_list))
+                    print(gpt_response_list)
                     
                     # for a_lesson_plan in gpt_response
                     gpt_response_list = json.loads(gpt_response)
 
                     # for debugging - view responses in terminal
+                    # print(f"{'GPT Response':~^20}\n", type(gpt_response_list))
                     # print(gpt_response_list)
-                    # print("3--->", type(gpt_response_list))
 
                 with st.spinner('Creating Lesson Plans...'):
                     file_ready = update_table_for_lesson_plan(table_id_for_lesson_plan, gpt_response_list)
                 with st.spinner('Creating Assessments...'):
-                    assessment_ready = update_assessment_and_marking_guide(document_templates[1], 
+                    assessment_ready = update_assessment_and_marking_guide(document_templates()[1], 
                                                                                         gpt_response_list, "assessment")
                 with st.spinner('Creating Marking Guides...'):
-                    marking_guide_ready = update_assessment_and_marking_guide(document_templates[2],
+                    marking_guide_ready = update_assessment_and_marking_guide(document_templates()[2],
                                                                                             gpt_response_list, "marking_guide")
                 # Download buttons
                 if file_ready == assessment_ready == marking_guide_ready == True:
-                        show_download_button(document_templates_names_for_saving[0])
-                        show_download_button(document_templates_names_for_saving[1])
-                        show_download_button(document_templates_names_for_saving[2])
+                    show_download_button(document_templates_names_for_saving[0])
+                    show_download_button(document_templates_names_for_saving[1])
+                    show_download_button(document_templates_names_for_saving[2])
+
                 else:
                     if file_ready != True:
                         st.error(file_ready)

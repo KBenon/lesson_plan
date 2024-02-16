@@ -3,14 +3,17 @@ from docx import Document
 import os
 
 # Length of document_templates & document_templates_names_for_saving should be same
-# Load template of all documents
-document_templates = [Document(f"{os.path.abspath('sample_templates/LESSON_PLAN_TEMPLATE.docx')}"), 
-                      Document(f"{os.path.abspath('sample_templates/ASSESSMENT_TEMPLATE.docx')}"), 
-                      Document(f"{os.path.abspath('sample_templates/MARKING_GUIDE_TEMPLATE.docx')}")]
+
 # File names for saving respective template
 document_templates_names_for_saving = ["lesson_plan", 
                                        "assessment", 
                                        "marking_guide"]
+
+# Load template of all documents
+def document_templates():
+    return [Document(f"{os.path.abspath('sample_templates/LESSON_PLAN_TEMPLATE.docx')}"), 
+                      Document(f"{os.path.abspath('sample_templates/ASSESSMENT_TEMPLATE.docx')}"), 
+                      Document(f"{os.path.abspath('sample_templates/MARKING_GUIDE_TEMPLATE.docx')}")]
 
 def get_all_data_from_file(file_name):
     """
@@ -64,11 +67,12 @@ def get_table_id_from_template_contain_days():
     try:
         days_names = ["MONDAY", "TUESDAY", "WEDNESDAY", 
                       "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+        document_templates_local = document_templates()
         tables_id_of_tables_contain_days_name = []
-        for i in range(0, len(document_templates[0].tables)):
+        for i in range(0, len(document_templates_local[0].tables)):
             for day in days_names:
-                if  str.lower(document_templates[0].tables[i].rows[0].cells[0].text) == str.lower(day):
-                    tables_id_of_tables_contain_days_name.append(document_templates[0].tables[i])
+                if  str.lower(document_templates_local[0].tables[i].rows[0].cells[0].text) == str.lower(day):
+                    tables_id_of_tables_contain_days_name.append(document_templates_local[0].tables[i])
                     break
         return tables_id_of_tables_contain_days_name
     except Exception as e:
@@ -110,14 +114,16 @@ def update_intro_table(teacher_name, course, unit_title, week):
         #     intro_table.rows[1].cells[1].text = unit_title
         #     intro_table.rows[1].cells[3].text = week
         #     save_document(template, document_templates_names_for_saving[index_num])
-        
-        intro_table = document_templates[0].tables[0]
+        global document_templates_global
+        document_templates_global = document_templates()
+
+        intro_table = document_templates_global[0].tables[0]
         intro_table.rows[0].cells[1].text = teacher_name
         intro_table.rows[0].cells[3].text = course
         intro_table.rows[1].cells[1].text = unit_title
         intro_table.rows[1].cells[3].text = week
-        save_document(document_templates[0], document_templates_names_for_saving[0])
-        return True
+        save_document(document_templates_global[0], document_templates_names_for_saving[0])
+        return True, document_templates_global[0]
     except Exception as e:
         return f"Error_{e}"
 
@@ -148,13 +154,14 @@ def update_table_for_lesson_plan(list_of_table_id, list_of_gpt_response):
                 table_id.rows[4].cells[1].text = list_of_gpt_response[index_number]["conclusion"]
 
         # Update key concept and terminology table
-        document_templates[0].tables[1].rows[1].cells[0].text = terminology
+        document_templates_global[0].tables[1].rows[1].cells[0].text = terminology
 
         # Save the document
-        return save_document(document_templates[0], document_templates_names_for_saving[0])
+        return save_document(document_templates_global[0], document_templates_names_for_saving[0])
     except Exception as e:
         return f"Error_{e}"
 
+# Not in use for now
 def update_table_for_assessment_and_marking_guide(list_of_table_id, list_of_gpt_response, file_description):
     """
     Update the table of assessment and marking guide with the given list of table id and gpt response.
@@ -182,9 +189,9 @@ def update_table_for_assessment_and_marking_guide(list_of_table_id, list_of_gpt_
 
         # Save the document
         if file_description == "assessment":
-            return save_document(document_templates[1], document_templates_names_for_saving[1])
+            return save_document(document_templates()[1], document_templates_names_for_saving[1])
         elif file_description == "marking_guide":
-            return save_document(document_templates[2], document_templates_names_for_saving[2])
+            return save_document(document_templates()[2], document_templates_names_for_saving[2])
         
     except Exception as e:
         return f"Error_{e}"
@@ -204,9 +211,9 @@ def update_assessment_and_marking_guide(document_template, list_of_gpt_response,
 
         # Save the document
         if file_description == "assessment":
-            return save_document(document_templates[1], document_templates_names_for_saving[1])
+            return save_document(document_template, document_templates_names_for_saving[1])
         elif file_description == "marking_guide":
-            return save_document(document_templates[2], document_templates_names_for_saving[2])
+            return save_document(document_template, document_templates_names_for_saving[2])
     except Exception as e:
         return f"Error_{e}"
 
