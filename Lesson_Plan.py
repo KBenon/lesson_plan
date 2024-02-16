@@ -195,20 +195,20 @@ def main():
                     gpt_response = handle_images_and_prompts(user_uploaded_images, len(user_selected_days), 
                                                              number_of_questions_for_assessment)
                     # for debugging - view responses in terminal
-                    # print("1--->", type(gpt_response))
-                    # print(gpt_response)
+                    print(f"{'-'*20}GPT Response Original{'-'*20}\n", type(gpt_response_list))
+                    print(gpt_response_list)
 
                     gpt_response = gpt_response.replace("`", "").replace("json", "")
 
                     # for debugging - view responses in terminal
-                    print(f"{'GPT Response Setted':~^20}\n", type(gpt_response_list))
-                    print(gpt_response_list)
+                    # print(f"{'-'*20}GPT Response Setted{'-'*20}\n", type(gpt_response_list))
+                    # print(gpt_response_list)
                     
                     # for a_lesson_plan in gpt_response
                     gpt_response_list = json.loads(gpt_response)
 
                     # for debugging - view responses in terminal
-                    # print(f"{'GPT Response':~^20}\n", type(gpt_response_list))
+                    # print(f"{'-'*20}GPT Response Setted{'-'*20}\n", type(gpt_response_list))
                     # print(gpt_response_list)
 
                 with st.spinner('Creating Lesson Plans...'):
