@@ -148,7 +148,7 @@ def update_table_for_lesson_plan(list_of_table_id, list_of_gpt_response):
                 terminology += list_of_gpt_response[index_number]["terminology"]+"\n"
 
                 # table_id has rows and cells structure
-                table_id.rows[1].cells[1].text = list_of_gpt_response[index_number]["aims_and_objective"]
+                table_id.rows[1].cells[1].text = "\n".join(["SWBAT "+line for line in list_of_gpt_response[index_number]["aims_and_objective"].split("\n")])     # Must add SWBAT in this field
                 table_id.rows[2].cells[1].text = list_of_gpt_response[index_number]["introduction"]
                 table_id.rows[3].cells[1].text = list_of_gpt_response[index_number]["lesson_body"]
                 table_id.rows[4].cells[1].text = list_of_gpt_response[index_number]["conclusion"]

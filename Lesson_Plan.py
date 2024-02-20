@@ -50,7 +50,7 @@ def handle_images_and_prompts(user_uploaded_images, no_of_days, no_of_questions_
     - Lesson Body (Stages, activities, focus etc.)
     - Conclusion (Closing routines & wrap up, e.g. homework setting, review, summary etc.)
     - Assessment ({no_of_questions_for_assessment} questions for students for assessment from the topic)
-    - Marking Guide of assessment questions
+    - Answers of assessment questions
 
     Your response should start with json object.
     I will use json.loads() to load your response in json. Give your response properly so that json.loads() don't create any issue.
@@ -61,7 +61,7 @@ def handle_images_and_prompts(user_uploaded_images, no_of_days, no_of_questions_
     "lesson_body": "stages, activities, focus etc seperated by new line",
     "conclusion": "closing routines & wrap up, e.g. homework setting, review, summary etc seperated by new line",
     "assessment": "{no_of_questions_for_assessment} questions for students for assessment from the topic seperated by new line",
-    "marking_guide": "marking guide of assessment questions seperated by new line"}}]
+    "marking_guide": "Answers of assessment questions seperated by new line"}}]
 
     Make sure that values must be in string.
     Don't change any key.
@@ -159,6 +159,15 @@ def main():
         course_name = st.text_input("Course: ", value="AP COMPUTER SCIENCE")
         week = st.text_input("Week: ", value="19")
     user_selected_days = st.multiselect("Select days for lesson planning", get_available_days_name())
+    
+    # duration_activity = {}
+    # for day in user_selected_days:
+    #     duration = st.number_input(f"Select duration for {day}", 
+    #                                min_value=10, value="min", key=f"duration_{day}")
+    #     activity = st.text_area(f"Enter Activity for {day}", key=f"activity_{day}")
+    #     duration_activity[day] = {"Duration": duration, "Activity": activity}
+    # st.write(duration_activity)
+    
     number_of_questions_for_assessment = st.number_input("Select number of questions of each day for assessment", 
                                                          min_value=1, max_value=10, value="min")
     
