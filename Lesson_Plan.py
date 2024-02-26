@@ -29,7 +29,7 @@ def show_uploaded_img_in_sidebar(uploaded_images):
     for image in uploaded_images:
         st.sidebar.image(image)
 
-def handle_images_and_prompts(user_uploaded_images, no_of_days, no_of_questions_for_assessment):
+def handle_images_and_prompts(user_uploaded_images, days_selected_by_user, no_of_questions_for_assessment, dict_of_duration_and_activity):
     """
     Prompts the ChatGPT model to generate a lesson plan based on the provided images.
 
@@ -37,34 +37,47 @@ def handle_images_and_prompts(user_uploaded_images, no_of_days, no_of_questions_
         user_uploaded_images (List[Image.Image]): A list of images uploaded by the user.
         no_of_days (int): The number of days for which the lesson plan is required.
         no_of_questions_for_assessment (int): The number of questions for each day of the assessment.
-
+        dict_of_duration_and_activity(dict): 
     Returns:
         str: A JSON string containing the lesson plan for each day.
     """
     # Prompt to get desired response from chatGPT
-    prompt = f"""I need {f"{no_of_days} lesson plans" if no_of_days>1 else f"{no_of_days} lesson plan"} according to provided images. 
-    Identify the following items from all provided images: 
-    - KEY  CONCEPTS & TERMINOLOGY 
+    no_of_days = len(days_selected_by_user)
+    
+    # Extract durations
+    durations = [day["Duration"] for day in dict_of_duration_and_activity.values()]
+    durations = ", ".join(str(duration)+" minutes" for duration in durations[:-1]) + " and " + str(durations[-1]) + " minutes"
+
+    prompt = f"""I need {f"{no_of_days} lesson plans" if no_of_days>1 else f"{no_of_days} lesson plan"} according to provided images using Bloom's Taxonomy.
+    Design lesson plans for {durations} respectively.
+    Duration must be same as provided, adjust lesson plan according to time duration.
+    
+    Identify the following items from all provided images:
+    - KEY CONCEPTS & TERMINOLOGY
     - Aims and Objectives
     - Introduction (Opening routines, warmer, topic lead-in etc.)
     - Lesson Body (Stages, activities, focus etc.)
+    - Duration
     - Conclusion (Closing routines & wrap up, e.g. homework setting, review, summary etc.)
     - Assessment ({no_of_questions_for_assessment} questions for students for assessment from the topic)
-    - Answers of assessment questions
+    - Exact answers of assessment questions
 
-    Your response should start with json object.
-    I will use json.loads() to load your response in json. Give your response properly so that json.loads() don't create any issue.
+    Your response should start with JSON object.
+    I will use `json.loads()` to load your response in JSON. Give your response properly so that `json.loads()` don't create any issue.
     Do not include any explanations, only provide {no_of_days} RFC8259 compliant JSON response following this format without deviation.
-    [{{"terminology": "key concepts and terminology seperated by new line",
-    "aims_and_objective": "Aims and objectives seperated by new line",
-    "introduction": "opening routines, warmer, topic lead-in etc seperated by new line",
-    "lesson_body": "stages, activities, focus etc seperated by new line",
-    "conclusion": "closing routines & wrap up, e.g. homework setting, review, summary etc seperated by new line",
-    "assessment": "{no_of_questions_for_assessment} questions for students for assessment from the topic seperated by new line",
-    "marking_guide": "Answers of assessment questions seperated by new line"}}]
+    [{{"terminology": "key concepts and terminology separated by new line",
+    "aims_and_objective": "Aims and objectives separated by new line. Each line should start with SWBAT",
+    "introduction": "opening routines, warmer, topic lead-in etc separated by new line",
+    "lesson_body": "stages, activities, focus etc and should be a bit long e.g 4 to 5 lines",
+    "Duration": "lecture duration in minutes",
+    "conclusion": "closing routines & wrap up, e.g. homework setting, review, summary etc separated by new line",
+    "assessment": "{no_of_questions_for_assessment} questions for students for assessment from the topic separated by new line",
+    "answers": "Exact answers of assessment questions separated by new line"}}]
 
     Make sure that values must be in string.
+    Don't repeat terminologies for each day.
     Don't change any key.
+    Don't forget to use Bloom's Taxonomy while creating lesson plans.
     Don't forget any instruction mentioned above.
     """
     # Don't use collections in values. 
@@ -80,6 +93,7 @@ def handle_images_and_prompts(user_uploaded_images, no_of_days, no_of_questions_
         base64_image = encode_image(resized_image)
         content.append({"type": "image_url", "image_url": f"data:image/jpeg;base64,{base64_image}"})
     # print(content)
+    # print(prompt)
     return chat_complition_images(content, no_of_days)
 
 def get_current_path_of_file(file_name):
@@ -158,14 +172,20 @@ def main():
     with col2:
         course_name = st.text_input("Course: ", value="AP COMPUTER SCIENCE")
         week = st.text_input("Week: ", value="19")
+    
     user_selected_days = st.multiselect("Select days for lesson planning", get_available_days_name())
     
-    # duration_activity = {}
-    # for day in user_selected_days:
-    #     duration = st.number_input(f"Select duration for {day}", 
-    #                                min_value=10, value="min", key=f"duration_{day}")
-    #     activity = st.text_area(f"Enter Activity for {day}", key=f"activity_{day}")
-    #     duration_activity[day] = {"Duration": duration, "Activity": activity}
+    col3, col4 = st.columns(2)
+    # Define a column layout with two columns.
+
+    duration_activity = {}
+    for day in user_selected_days:
+        with col3:
+            duration = st.number_input(f"Select duration for {day}", 
+                                    min_value=10, value="min", key=f"duration_{day}")
+        with col4:
+            activity = st.text_area(f"Enter Activity for {day}", key=f"activity_{day}")
+        duration_activity[day] = {"Duration": duration, "Activity": activity}
     # st.write(duration_activity)
     
     number_of_questions_for_assessment = st.number_input("Select number of questions of each day for assessment", 
@@ -188,7 +208,8 @@ def main():
     if process_button:
         # Check if all the required fields are present.
         if teacher_name and unit_title and course_name and week and \
-            user_selected_days and number_of_questions_for_assessment:
+            user_selected_days and number_of_questions_for_assessment and \
+                duration_activity:
 
             updated_intro_table, selected_doc_template = update_intro_table(teacher_name, course_name, unit_title, week)
             # list of table_id_of_lesson_plan_days
@@ -201,8 +222,8 @@ def main():
 
             if user_uploaded_images:
                 with st.spinner('Creating your document...'):
-                    gpt_response = handle_images_and_prompts(user_uploaded_images, len(user_selected_days), 
-                                                             number_of_questions_for_assessment)
+                    gpt_response = handle_images_and_prompts(user_uploaded_images, user_selected_days, 
+                                                             number_of_questions_for_assessment, duration_activity)
                     # for debugging - view responses in terminal
                     print(f"{'-'*20}GPT Response Original{'-'*20}\n", type(gpt_response))
                     print(gpt_response)
@@ -221,13 +242,14 @@ def main():
                     # print(gpt_response_list)
 
                 with st.spinner('Creating Lesson Plans...'):
-                    file_ready = update_table_for_lesson_plan(table_id_for_lesson_plan, gpt_response_list)
+                    activities = [day["Activity"] for day in duration_activity.values()]
+                    file_ready = update_table_for_lesson_plan(table_id_for_lesson_plan, gpt_response_list, activities)
                 with st.spinner('Creating Assessments...'):
                     assessment_ready = update_assessment_and_marking_guide(document_templates()[1], 
                                                                                         gpt_response_list, "assessment")
                 with st.spinner('Creating Marking Guides...'):
                     marking_guide_ready = update_assessment_and_marking_guide(document_templates()[2],
-                                                                                            gpt_response_list, "marking_guide")
+                                                                                            gpt_response_list, "answers")
                 # Download buttons
                 if file_ready == assessment_ready == marking_guide_ready == True:
                     show_download_button(document_templates_names_for_saving[0])

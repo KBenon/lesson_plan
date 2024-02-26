@@ -1,13 +1,14 @@
 # Import modules
 from docx import Document
 import os
+from openai_functions import chat_completion
 
 # Length of document_templates & document_templates_names_for_saving should be same
 
 # File names for saving respective template
 document_templates_names_for_saving = ["lesson_plan", 
                                        "assessment", 
-                                       "marking_guide"]
+                                       "answers"]
 
 # Load template of all documents
 def document_templates():
@@ -127,7 +128,47 @@ def update_intro_table(teacher_name, course, unit_title, week):
     except Exception as e:
         return f"Error_{e}"
 
-def update_table_for_lesson_plan(list_of_table_id, list_of_gpt_response):
+# =================================================
+# Function to add key as bold and value as normal
+def add_key_value(key, value, table_id):
+    p = table_id.add_paragraph()
+    p.add_run(key).bold = True
+    p.add_run(": " + value)
+
+# Function to handle list of dictionaries
+def handle_list_of_dicts(key, value, table_id):
+    index = 1
+    add_key_value(key, "", table_id)
+    for item in value:
+        for inner_key, inner_value in item.items():
+            p = table_id.add_paragraph()
+            p.add_run(f"Stage {index} - {inner_key}").bold = True
+            p.add_run(": " + inner_value)
+            index += 1
+
+def adjust_lesson_body(table_id, lesson_body, time_duration_mints, activity):
+    prompt = f"""
+    Your task is to generate a lesson plan with activity of provided content, delimited by triple 
+    backticks.
+    Do not include any explanations, only provide RFC8259 compliant JSON response following this format without deviation.
+    {{"Lesson_Title": "title of lesson",
+    "Duration": "{time_duration_mints} minutes",
+    "Focus": "Describe main focus during lecture. It should be 2 to 3 lines",
+    "Activity": "{activity}",
+    "Lesson_Stages": [{{"Stage name e.g introduction":"Stage details"}}],
+    "}}
+    content: ```{lesson_body}```
+    """
+
+    lesson_body = chat_completion(prompt)
+
+    for key, value in lesson_body.items():
+        if isinstance(value, list):  # If value is a list of dictionaries
+            handle_list_of_dicts(key, value, table_id)
+        else:
+            add_key_value(key, value, table_id)
+# =================================================
+def update_table_for_lesson_plan(list_of_table_id, list_of_gpt_response, list_of_activity):
     """
     Update the table of lesson plan with the given list of table id and gpt response.
 
@@ -144,13 +185,18 @@ def update_table_for_lesson_plan(list_of_table_id, list_of_gpt_response):
         for index_number, table_id in enumerate(list_of_table_id):
             # list_of_gpt_response is a list of dictionaries
             # Check if index_number is within the range of list_of_gpt_response
-            if index_number < len(list_of_gpt_response):
+            if index_number < len(list_of_gpt_response) :
                 terminology += list_of_gpt_response[index_number]["terminology"]+"\n"
 
                 # table_id has rows and cells structure
-                table_id.rows[1].cells[1].text = "\n".join(["SWBAT "+line for line in list_of_gpt_response[index_number]["aims_and_objective"].split("\n")])     # Must add SWBAT in this field
+                # table_id.rows[1].cells[1].text = "\n".join(["SWBAT "+line for line in list_of_gpt_response[index_number]["aims_and_objective"].split("\n")])     # Must add SWBAT in this field
+                table_id.rows[1].cells[1].text = list_of_gpt_response[index_number]["aims_and_objective"]
                 table_id.rows[2].cells[1].text = list_of_gpt_response[index_number]["introduction"]
-                table_id.rows[3].cells[1].text = list_of_gpt_response[index_number]["lesson_body"]
+                # table_id.rows[3].cells[1].text = list_of_gpt_response[index_number]["lesson_body"]
+                specific_table_id = table_id.rows[3].cells[1]
+                adjust_lesson_body(specific_table_id, list_of_gpt_response[index_number]["lesson_body"], 
+                                list_of_gpt_response[index_number]["Duration"], 
+                                list_of_activity[index_number])
                 table_id.rows[4].cells[1].text = list_of_gpt_response[index_number]["conclusion"]
 
         # Update key concept and terminology table
@@ -161,7 +207,7 @@ def update_table_for_lesson_plan(list_of_table_id, list_of_gpt_response):
     except Exception as e:
         return f"Error_{e}"
 
-# Not in use for now
+# =================== Not in use for now SECTION START ===================
 def update_table_for_assessment_and_marking_guide(list_of_table_id, list_of_gpt_response, file_description):
     """
     Update the table of assessment and marking guide with the given list of table id and gpt response.
@@ -195,6 +241,7 @@ def update_table_for_assessment_and_marking_guide(list_of_table_id, list_of_gpt_
         
     except Exception as e:
         return f"Error_{e}"
+# =================== Not in use for now SECTION END =====================
 
 def update_assessment_and_marking_guide(document_template, list_of_gpt_response, file_description):
     try:
@@ -212,7 +259,7 @@ def update_assessment_and_marking_guide(document_template, list_of_gpt_response,
         # Save the document
         if file_description == "assessment":
             return save_document(document_template, document_templates_names_for_saving[1])
-        elif file_description == "marking_guide":
+        elif file_description == "answers":
             return save_document(document_template, document_templates_names_for_saving[2])
     except Exception as e:
         return f"Error_{e}"
