@@ -150,12 +150,21 @@ def adjust_lesson_body(table_id, lesson_body, time_duration_mints, activity):
     prompt = f"""
     Your task is to generate a lesson plan with activity of provided content, delimited by triple 
     backticks.
+    Exclude 26% of time. Remaining time should be divided into stages.
+    On each stage we divide the time accodingly so we can show the time to be spent on each stage.
+    If the time is 90 or more, let us make it around 6 or more stages but not more than 8.\
+    If the time is around 60 make it around 5 stages, \
+    If the time is 40 we make it 3-4 stages and if the time is below 40 we keep then at 3.
+    Given activity should connect to the lesson plan and you should create the materials needed and the activity should embedded in the lesson plan.
+    Be carefull with number of stages, time specified on each stage and connection of activity with lesson plan.
+    
     Do not include any explanations, only provide RFC8259 compliant JSON response following this format without deviation.
     {{"Lesson_Title": "title of lesson",
     "Duration": "{time_duration_mints} minutes",
     "Focus": "Describe main focus during lecture. It should be 2 to 3 lines",
+    "Materials":"should be separted and started by new line",
     "Activity": "{activity}",
-    "Lesson_Stages": [{{"Stage name e.g introduction":"Stage details"}}],
+    "Lesson_Stages": [{{"Stage name (minutes spend on each stage)":"Stage details"}}],
     "}}
     content: ```{lesson_body}```
     """

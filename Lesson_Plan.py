@@ -15,7 +15,7 @@ from document_functions import update_intro_table, \
 
 # =============== Page setup
 st.header("Automated Lesson Plan App📄")
-st.subheader("Image Uploader section")
+# st.subheader("Image Uploader section")
 
 # =============== Functions
 def show_uploaded_img_in_sidebar(uploaded_images):
@@ -25,6 +25,7 @@ def show_uploaded_img_in_sidebar(uploaded_images):
     Parameters:
         uploaded_images (List[Image.Image]): A list of images uploaded by the user.
     """
+    st.sidebar.info("Upload image and then press Process button", icon="ℹ")
     st.sidebar.write("Uploaded Images: ")
     for image in uploaded_images:
         st.sidebar.image(image)
@@ -175,9 +176,9 @@ def main():
     
     user_selected_days = st.multiselect("Select days for lesson planning", get_available_days_name())
     
-    col3, col4 = st.columns(2)
     # Define a column layout with two columns.
-
+    col3, col4 = st.columns(2)
+   
     duration_activity = {}
     for day in user_selected_days:
         with col3:
@@ -192,7 +193,7 @@ def main():
                                                          min_value=1, max_value=10, value="min")
     
     # ---------- Get images from user for lesson planning
-    st.info("Upload image and then press Process button", icon="ℹ")
+    # st.info("Upload image and then press Process button", icon="ℹ")
     # Take images from user
     user_uploaded_images = st.file_uploader("Upload your image", type=['png', 'jpg'], accept_multiple_files=True)
     #  Process button
